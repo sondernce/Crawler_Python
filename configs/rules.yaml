@@ -1,0 +1,34 @@
+crawler_task:
+  name: "university_staff_crawler"
+  
+  # Начальные точки входа для эксперимента
+  start_urls: 
+    # - "https://example-university.edu/science/staff"
+
+  # Правила извлечения данных (Mapping)
+  extract_rules:
+    - name: "staff_member"
+      # Расширенный набор селекторов для поиска карточек/блоков с контактами
+      # Убраны слишком общие селекторы li, article, h1-h5
+      selector: ".person, .staff-item, .employee, .user-info, .contact, .contact-card, .card, .team-member, .vcard, [itemtype*='Person'], .worker, .member, .post.person"
+      fields:
+        # Только специфичные селекторы для имени (убраны h1-h5)
+        full_name: ".fio, .name, .full-name, .title, [itemprop='name'], .worker-name, .member-name, strong, b, .content__person-text a"
+        # Поиск почты: ссылки mailto, CSS-классы, schema.org
+        email: "a[href^='mailto:'], .email, .e-mail, .mail, [itemprop='email'], .contact-email"
+        # Поиск телефона: ссылки tel, CSS-классы, schema.org
+        phone: "a[href^='tel:'], .phone, .tel, .telephone, [itemprop='telephone'], .contact-phone"
+      # Только прямые ссылки на персональные страницы (не навигационные)
+      profile_link: "a[href*='/personal/']"
+
+  # Параметры навигации (для глубокого краулинга)
+  navigation:
+    follow_links: ".pagination a.next, .load-more"
+    max_depth: 4
+
+  # Фильтрация данных для повышения точности эксперимента
+  filters:
+    # Сохраняем только те записи, где есть хотя бы имя
+    exclude_empty: ["full_name"]
+    # Оставляем только те записи, где в полях есть упоминание домена (опционально)
+    must_contain: []
